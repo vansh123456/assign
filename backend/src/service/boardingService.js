@@ -12,10 +12,12 @@ export function generateBoardingSequence(bookings) {
     };
   });
 
-  enrichedBookings.sort((a, b) => {
+  enrichedBookings.sort((a, b) => { //comparator se kar rahe
     if (b.maxSeatDistance !== a.maxSeatDistance) {
-      return b.maxSeatDistance - a.maxSeatDistance;
-    }
+      return b.maxSeatDistance - a.maxSeatDistance; //max distance se minus kar rahe to get distance
+    } //result is positive
+
+ //a moves after b
     return a.bookingId - b.bookingId;
   });
 

@@ -1,3 +1,4 @@
+//validates the structure of the input before any business logic runs, ensuring the backend only
 export function validateBookings(bookings) {
     if (!Array.isArray(bookings)) {
       return "Input must be an array";
