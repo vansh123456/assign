@@ -22,6 +22,16 @@
   {"bookingId": 2, "seats": ["10B"]}
 ]'></textarea>
 
+  <!-- <div>
+    <label for="jsonFile">Or upload JSON file</label>
+    <input id="jsonFile" type="file" accept="application/json" />
+  </div> -->
+
+  <div>
+    <label for="csvFile">Or upload booking CSV</label>
+    <input id="csvFile" type="file" accept=".csv" />
+  </div>
+
   <div>
     <button id="generateBtn">Generate Boarding Sequence</button>
   </div>
@@ -41,6 +51,8 @@
     const errorEl = document.getElementById('error');
     const tableEl = document.getElementById('resultTable');
     const tbodyEl = tableEl.querySelector('tbody');
+    const fileEl = document.getElementById('jsonFile');
+    const csvFileEl = document.getElementById('csvFile');
 
     function showError(message) {
       errorEl.textContent = message || '';
@@ -60,6 +72,55 @@
       });
       tableEl.style.display = rows.length ? 'table' : 'none';
     }
+
+    if (fileEl) {
+      fileEl.addEventListener('change', () => {
+        showError('');
+        renderTable([]);
+
+        const file = fileEl.files && fileEl.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result || '';
+          inputEl.value = text;
+        };
+        reader.onerror = () => {
+          showError('Failed to read file');
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    csvFileEl.addEventListener('change', async () => {
+      showError('');
+      renderTable([]);
+
+      const file = csvFileEl.files && csvFileEl.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('http://localhost:3000/api/boarding/sequence/file', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError((data && data.error) || 'Upload failed');
+          return;
+        }
+
+        renderTable(data);
+      } catch (err) {
+        showError('Network error: ' + err.message);
+      }
+    });
 
     buttonEl.addEventListener('click', async () => {
       showError('');

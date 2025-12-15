@@ -1,14 +1,14 @@
 import express from "express";
-import boardingRoute from "./routes/boardingRoute.js";
 import cors from "cors";
+import boardingRoute from "./routes/boardingRoute.js";
+
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
+
 app.use("/api/boarding", boardingRoute);
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
 });
