@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boarding Sequence</title>
+  <style>
+    body { font-family: sans-serif; padding: 16px; max-width: 720px; margin: 0 auto; }
+    textarea { width: 100%; min-height: 160px; }
+    button { margin: 12px 0; padding: 8px 12px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    #error { color: #b00020; margin-top: 8px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Boarding Sequence</h1>
+
+  <label for="jsonInput">Bookings JSON (array)</label>
+  <textarea id="jsonInput" placeholder='[
+  {"bookingId": 1, "seats": ["1A", "2A"]},
+  {"bookingId": 2, "seats": ["10B"]}
+]'></textarea>
+
+  <div>
+    <button id="generateBtn">Generate Boarding Sequence</button>
+  </div>
+
+  <div id="error"></div>
+
+  <table id="resultTable" aria-label="Boarding sequence" style="display:none;">
+    <thead>
+      <tr><th>Seq</th><th>Booking ID</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const inputEl = document.getElementById('jsonInput');
+    const buttonEl = document.getElementById('generateBtn');
+    const errorEl = document.getElementById('error');
+    const tableEl = document.getElementById('resultTable');
+    const tbodyEl = tableEl.querySelector('tbody');
+
+    function showError(message) {
+      errorEl.textContent = message || '';
+    }
+
+    function renderTable(rows) {
+      tbodyEl.innerHTML = '';
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        const seq = document.createElement('td');
+        const booking = document.createElement('td');
+        seq.textContent = row.seq;
+        booking.textContent = row.bookingId;
+        tr.appendChild(seq);
+        tr.appendChild(booking);
+        tbodyEl.appendChild(tr);
+      });
+      tableEl.style.display = rows.length ? 'table' : 'none';
+    }
+
+    buttonEl.addEventListener('click', async () => {
+      showError('');
+      renderTable([]);
+
+      let payload;
+      try {
+        payload = JSON.parse(inputEl.value || '[]');
+      } catch (err) {
+        showError('Invalid JSON: ' + err.message);
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3000/api/boarding/sequence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          const msg = data && data.error ? data.error : 'Request failed';
+          showError(msg);
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          showError('Unexpected response format');
+          return;
+        }
+
+        renderTable(data);
+      } catch (err) {
+        showError('Network error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
